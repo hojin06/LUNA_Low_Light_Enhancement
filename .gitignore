@@ -1,0 +1,87 @@
+# =========================
+# Python cache
+# =========================
+__pycache__/
+*/__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# =========================
+# Virtual environments
+# =========================
+venv/
+.venv/
+env/
+
+# =========================
+# Environment variables
+# =========================
+.env
+
+# =========================
+# VS Code / OS files
+# =========================
+.vscode/
+.DS_Store
+Thumbs.db
+
+# =========================
+# Model weights / checkpoints
+# =========================
+*.pth
+*.pt
+*.ckpt
+checkpoints/
+checkpoints*/
+experiments/checkpoints/
+experiments/checkpoints*/
+
+# =========================
+# Exported models
+# =========================
+*.onnx
+*.engine
+sym_shape_infer_temp.onnx
+deploy/models/
+
+# =========================
+# Logs
+# =========================
+logs/
+logs*/
+*.log
+
+# =========================
+# Results / generated images
+# =========================
+results/
+results*/
+experiments/results/
+experiments/results*/
+
+# =========================
+# Temporary / binary data
+# =========================
+*.data
+*.npy
+*.npz
+*.pkl
+*.pickle
+
+# =========================
+# Dataset folders
+# 주의: data/ 전체를 무시하면 안 됨.
+# data/*.py 코드는 GitHub에 올려야 함.
+# =========================
+data/LOL/
+data/lol/
+data/raw/
+datasets/
+dataset/
+
+# =========================
+# Optional sample images
+# 처음 업로드에서는 제외 추천
+# =========================
+samples/
