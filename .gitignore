@@ -73,11 +73,15 @@ experiments/results*/
 # Dataset folders
 # 주의: data/ 전체를 무시하면 안 됨.
 # data/*.py 코드는 GitHub에 올려야 함.
+# datasets/ 폴더의 *.py / README 는 코드이므로 예외 처리 (다운로드 스크립트).
 # =========================
 data/LOL/
 data/lol/
 data/raw/
 datasets/
+!datasets/*.py
+!datasets/__init__.py
+!datasets/README.md
 dataset/
 
 # =========================

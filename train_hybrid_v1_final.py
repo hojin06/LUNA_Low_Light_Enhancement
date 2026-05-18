@@ -798,7 +798,7 @@ def _save_final_visualizations(
     G.eval()
 
     tensors: List[torch.Tensor] = []
-    saved = 0
+    saved = 0 
     for low, high in eval_loader:
         if saved >= max_samples:
             break

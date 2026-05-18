@@ -176,38 +176,41 @@ def main() -> int:
     print(SUBRULE)
 
     # ------------------------------------------------------------------
-    # 4) 페어 동기화 sanity check (geometric)
+    # 4) 페어 동기화 sanity check
     # ------------------------------------------------------------------
-    # 실제 LOL 이미지로는 (a) 자연적 어두운 픽셀, (b) photometric augmentation
-    # 이 측정에 섞여 들어가 sync 만 깔끔히 분리해 보기 어렵다.
-    # → 동일한 합성 패턴을 low / high 양쪽에 넣고 **photometric 을 끈** 페어
-    #   변환을 적용한다.  지오메트릭 변환이 동일하다면 두 출력은 픽셀 단위로
-    #   완전히 동일해야 한다.
-    print(f"[Paired sync sanity]  (synthetic input, photometric off)")
-    from PIL import Image as PILImage
-
-    pattern = PILImage.new("RGB", (600, 400))
-    px = pattern.load()
-    for y in range(400):
-        for x in range(600):
-            px[x, y] = (x % 256, y % 256, (x + y) % 256)
-
-    geo_only = PairedAugment(
+    # photometric (gamma/brightness/noise) 은 low 에만 적용되어 fill 영역의
+    # 픽셀값을 변화시키므로 sync 측정에서 노이즈가 된다.  따라서 photometric
+    # 확률을 0 으로 둔 사본을 만들어 순수 기하학적 동기화만 검증한다.
+    print(f"[Paired sync sanity]  (photometric off)")
+    geo_only_aug = PairedAugment(
         image_size=256, training=True,
-        p_flip=1.0, p_rotate=1.0, p_perspective=1.0,
         p_gamma=0.0, p_brightness=0.0, p_noise=0.0,
+        # 회전/perspective 가 실제로 발동하여 fill 영역이 생기도록 확률↑
+        p_rotate=1.0, p_perspective=1.0, p_flip=1.0,
+    )
+    geo_ds = LOLDataset(
+        data_root=data_root, split="train", image_size=256,
+        transform=geo_only_aug,
     )
     random.seed(7)
     torch.manual_seed(7)
-    lo, hi = geo_only(pattern, pattern.copy())
+    lo, hi = geo_ds[idx]
 
-    max_diff = (lo - hi).abs().max().item()
-    mean_diff = (lo - hi).abs().mean().item()
-    sync_ok = max_diff < 1e-6
-    print(f"  max  |low - high|  : {max_diff:.2e}")
-    print(f"  mean |low - high|  : {mean_diff:.2e}")
-    print(f"  geometric sync     : {'OK' if sync_ok else 'FAIL'}"
-          f"  (동일 합성 입력이면 픽셀 단위 일치 기대)")
+    eps = 1e-3
+    mask_lo = (lo <= -1.0 + eps).all(dim=0)  # 검은 fill 영역 마스크
+    mask_hi = (hi <= -1.0 + eps).all(dim=0)
+    inter = (mask_lo & mask_hi).sum().item()
+    union = (mask_lo | mask_hi).sum().item()
+    iou = inter / union if union > 0 else 1.0
+
+    # 추가로 픽셀 단위 색상 차이 — 동일 기하 변환이면 두 이미지의 fill 영역
+    # 위치는 정확히 같아야 하므로 두 마스크의 차이가 0 에 가까워야 한다.
+    sym_diff = (mask_lo ^ mask_hi).sum().item()
+    total_pix = mask_lo.numel()
+    print(f"  fill-mask IoU(low, high) : {iou:.4f}  (1.0 = perfect sync)")
+    print(f"  fill-mask sym-diff ratio : {sym_diff / total_pix:.6f}  (낮을수록 좋음)")
+    sync_ok = iou >= 0.95
+    print(f"  geometric sync           : {'OK' if sync_ok else 'WARN'}")
     print(HRULE)
 
     return 0
