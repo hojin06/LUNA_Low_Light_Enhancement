@@ -258,7 +258,7 @@ python deploy/benchmark.py \
 학술/연구 목적 코드. LOL 데이터셋의 원본 라이센스는 별도 확인 필요
 ([daooshee.github.io/BMVC2018website](https://daooshee.github.io/BMVC2018website/)).
 
-본 코드를 학술 논문에 활용 시 LightEnhanceGAN (hybrid_v1) 항목으로
+본 코드를 활용 시 LightEnhanceGAN (hybrid_v1) 항목으로
 `experiments/comparison.py` 가 출력하는 LaTeX 표를 그대로 사용 가능.
 
 ---
